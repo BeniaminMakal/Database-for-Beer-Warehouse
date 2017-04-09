@@ -38,6 +38,7 @@ Unit_price int NOT NULL CHECK (Unit_price>0),
 Amount float NOT NULL,
 Unit_of_measurement varchar(50) NOT NULL,
 Serial_number varchar(255) NOT NULL, 
+Bar_code bigint NOT NULL,
 CONSTRAINT PK_Invoice_items PRIMARY KEY CLUSTERED (ID))
 GO
 
@@ -79,6 +80,7 @@ Price int NOT NULL,
 P_type varchar(50) NOT NULL,
 Amount int CHECK (Amount>=0),
 Unit_of_measurement varchar(50) NOT NULL,
+Bar_code bigint UNIQUE NOT NULL,
 CONSTRAINT PK_Product PRIMARY KEY CLUSTERED (ID))
 GO
 
@@ -122,6 +124,9 @@ CONSTRAINT PK_Brewerys PRIMARY KEY CLUSTERED (ID))
 GO
 
 /* This part is adding foreign keys */
+ALTER TABLE [dbo].[Invoice_items] WITH NOCHECK ADD CONSTRAINT [FK_Product_bar_code] FOREIGN KEY ([Bar_code])
+REFERENCES [dbo].[Products]([Bar_code])
+GO
 
 ALTER TABLE [dbo].[Expiration_dates] WITH NOCHECK ADD CONSTRAINT [FK_Product_name] FOREIGN KEY ([Product_name])
 REFERENCES [dbo].[Products]([Product_name])
@@ -210,7 +215,6 @@ GO
 
 
 /*Creating logins, users and grant them roles */
-
 IF NOT EXISTS (SELECT name FROM sys.sql_logins WHERE name = 'cashier1')
 BEGIN 
 CREATE LOGIN cashier1 WITH PASSWORD = 'cashier1'
@@ -422,23 +426,23 @@ VALUES ('For The Sun', 'Kostom³oty', 'ul. Sucha 2', '80-532', '365854795', 'For_
 INSERT INTO Breweries (Br_name, Br_Location, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('Green_Hops', 'Ko³o', 'ul. Mokra 64', '70-564', '123654897', 'green_hops@beer.pl', 'www.greenhops.pl')
 
-INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l')
+INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l', 8905415667485)
 
-INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l')
+INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l', 85964512455574)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Hip-Hops', 'Hops', 'We love beer', 10, 'Wheat beer', 7890, '0.5l')
+INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Hip-Hops', 'Hops', 'We love beer', 10, 'Wheat beer', 7890, '0.5l', 8594006931755)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Dark Hoops', 'Hops', 'We love beer', 9, 'Porter', 5000, '0.5l')
+INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Dark Hoops', 'Hops', 'We love beer', 9, 'Porter', 5000, '0.5l', 8905697841256)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Black Leaf', 'Green_Hops', 'Beer masters', 22, 'RIS', 3900, '0.3l')
+INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Black Leaf', 'Green_Hops', 'Beer masters', 22, 'RIS', 3900, '0.3l', 8707689458741)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement)
-VALUES ('Coin', 'Green_Hops', 'Beer masters', 11, 'Stout', 6920, '0.5l')
+INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('Coin', 'Green_Hops', 'Beer masters', 11, 'Stout', 6920, '0.5l', 8905694581245)
 
 INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Kazimierskie', '2016/08/12/T23', '2017-05-02 11:11:11')
@@ -500,14 +504,14 @@ VALUES (2, 1800, 'CREDIT CARD', 5, '2017-01-01 16:00:22')
 INSERT INTO Invoice_headers (Customer_ID, Invoice_value, Payment, Discount, Date_time)
 VALUES (3, 10000, 'TRANSFER', 5, '2017-01-13 07:57:04')
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number)
-VALUES ('Coin', 1, 100, 11, '0.5l', '2016/12/23/P09')
+INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+VALUES ('Coin', 1, 100, 11, '0.5l', '2016/12/23/P09', 8905694581245)
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number)
-VALUES ('Dark Hoops', 2, 200, 9, '0.3l', '2016/12/30/R423')
+INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+VALUES ('Dark Hoops', 2, 200, 9, '0.3l', '2016/12/30/R423', 8905697841256)
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number)
-VALUES ('Hip-Hops', 3, 1000, 10, '0.5l', '2017/01/23/G543')
+INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+VALUES ('Hip-Hops', 3, 1000, 10, '0.5l', '2017/01/23/G543', 8594006931755)
 
 INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
 VALUES (1, 'GRAF', 1, '2017-02-23 11:11:21')
