@@ -430,7 +430,7 @@ INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_meas
 VALUES ('Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l', 8905415667485)
 
 INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l', 85964512455574)
+VALUES ('Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l', 8596451245557)
 
 INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
 VALUES ('Hip-Hops', 'Hops', 'We love beer', 10, 'Wheat beer', 7890, '0.5l', 8594006931755)
