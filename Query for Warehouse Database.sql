@@ -4,9 +4,9 @@
 USE [master]
 GO
 
-CREATE DATABASE [Warehouse]
+CREATE DATABASE [Warehouse.Tests]
 GO
-USE [Warehouse]
+USE [Warehouse.Tests]
 GO
 
 CREATE TABLE [dbo].[Sale] (
@@ -20,7 +20,7 @@ CONSTRAINT PK_Sale PRIMARY KEY CLUSTERED (Sale_ID)
 )
 GO
 
-CREATE TABLE [dbo].[Invoice_headers] (
+CREATE TABLE [dbo].[InvoiceHeaders] (
 Invoice_ID int identity(1,1) NOT NULL,
 Customer_ID int NOT NULL,
 Payment varchar(30) NOT NULL,
@@ -30,7 +30,7 @@ Invoice_value float NOT NULL
 CONSTRAINT PK_Invoice_header PRIMARY KEY CLUSTERED (Invoice_ID))
 GO
 
-CREATE TABLE [dbo].[Invoice_items] (
+CREATE TABLE [dbo].[InvoiceItems] (
 ID int NOT NULL identity(1,1),
 Invoice_ID int NOT NULL,
 Product_name varchar(255) NOT NULL,
@@ -65,14 +65,14 @@ Cus_Type varchar(50),
 CONSTRAINT PK_Customers PRIMARY KEY CLUSTERED (Customer_ID))
 GO
 
-CREATE TABLE [dbo].[Cus_Types] (
+CREATE TABLE [dbo].[CusTypes] (
 Cus_Type varchar(50) NOT NULL, 
 Discount int CHECK (Discount >= 0) DEFAULT (0)
 CONSTRAINT PK_Cus_Type PRIMARY KEY CLUSTERED (Cus_Type))
 GO
 
 CREATE TABLE [dbo].[Products] (
-ID int identity(1,1) NOT NULL,
+ProductID varchar(255) NOT NULL UNIQUE,
 Product_name varchar(255) NOT NULL UNIQUE,
 Brewery varchar(255) NOT NULL, 
 Distributor varchar(255),
@@ -81,16 +81,16 @@ P_type varchar(50) NOT NULL,
 Amount int CHECK (Amount>=0),
 Unit_of_measurement varchar(50) NOT NULL,
 Bar_code bigint UNIQUE NOT NULL,
-CONSTRAINT PK_Product PRIMARY KEY CLUSTERED (ID))
+CONSTRAINT PK_Product PRIMARY KEY CLUSTERED (ProductID))
 GO
 
-CREATE TABLE [dbo].[Products_Types] (
+CREATE TABLE [dbo].[ProductsTypes] (
 ID int identity (1,1) NOT NULL,
 P_Type_Name varchar(50) NOT NULL UNIQUE,
 CONSTRAINT PK_Product_Type PRIMARY KEY CLUSTERED (ID))
 GO
 
-CREATE TABLE [dbo].[Expiration_dates](
+CREATE TABLE [dbo].[ExpirationDates](
 ID int identity (1,1) NOT NULL,
 Product_name varchar(255) NOT NULL,
 Serial_number varchar(255) NOT NULL,
@@ -99,36 +99,47 @@ CONSTRAINT PK_Expiration_dates PRIMARY KEY CLUSTERED (ID)
 )
 GO
 
-CREATE TABLE [dbo].[Distributors] (
-ID int identity(1,1) NOT NULL,
-Dis_name varchar(255) NOT NULL UNIQUE,
-Dis_Location varchar(255) NOT NULL,
+CREATE TABLE [dbo].[CompaniesTypes](
+TypeID int identity(1,1) NOT NULL,
+TypeName varchar(255) NOT NULL,
+CONSTRAINT PK_TypeID PRIMARY KEY CLUSTERED (TypeID))
+GO
+
+CREATE TABLE [dbo].[Companies](
+CompanyID int identity(1,1) NOT NULL,
+CompanyName varchar(255) NOT NULL UNIQUE,
+City varchar(255) NOT NULL,
 Adress varchar (255) NOT NULL,
 Postal_code varchar(50) NOT NULL,
 Telephone varchar (50) NOT NULL,
 Email varchar(255) NOT NULL,
 WWW varchar(255) NOT NULL
-CONSTRAINT PK_Distributor PRIMARY KEY CLUSTERED (ID))
+CONSTRAINT PK_dDistributor PRIMARY KEY CLUSTERED (CompanyID))
 GO
 
-CREATE TABLE [dbo].[Breweries] (
-ID int identity(1,1) NOT NULL,
-Br_name varchar(255) NOT NULL UNIQUE,
-Br_Location varchar(255) NOT NULL,
-Adress varchar (255) NOT NULL,
-Postal_code varchar(50) NOT NULL,
-Telephone varchar(50) NOT NULL,
-Email varchar(255) NOT NULL,
-WWW varchar(255) NOT NULL
-CONSTRAINT PK_Brewerys PRIMARY KEY CLUSTERED (ID))
-GO
+CREATE TABLE [dbo].[CompanyType](
+CompanyTypeID int identity(1, 1) NOT NULL,
+CompanyID int NOT NULL,
+TypeID int NOT NULL,
+CONSTRAINT PK_CompanyTypeID PRIMARY KEY CLUSTERED (CompanyTypeID)
+)
+
 
 /* This part is adding foreign keys */
-ALTER TABLE [dbo].[Invoice_items] WITH NOCHECK ADD CONSTRAINT [FK_Product_bar_code] FOREIGN KEY ([Bar_code])
+
+ALTER TABLE [dbo].[CompanyType] WITH NOCHECK ADD CONSTRAINT [FK_Comapanies] FOREIGN KEY ([CompanyID])
+REFERENCES [dbo].[Companies]([CompanyID])
+GO
+
+ALTER TABLE [dbo].[CompanyType] WITH NOCHECK ADD CONSTRAINT [FK_Types] FOREIGN KEY ([TypeID])
+REFERENCES [dbo].[CompaniesTypes]([TypeID])
+GO
+
+ALTER TABLE [dbo].[InvoiceItems] WITH NOCHECK ADD CONSTRAINT [FK_Product_bar_code] FOREIGN KEY ([Bar_code])
 REFERENCES [dbo].[Products]([Bar_code])
 GO
 
-ALTER TABLE [dbo].[Expiration_dates] WITH NOCHECK ADD CONSTRAINT [FK_Product_name] FOREIGN KEY ([Product_name])
+ALTER TABLE [dbo].[ExpirationDates] WITH NOCHECK ADD CONSTRAINT [FK_Product_name] FOREIGN KEY ([Product_name])
 REFERENCES [dbo].[Products]([Product_name])
 GO
 
@@ -138,7 +149,7 @@ ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Sale]  WITH NOCHECK ADD  CONSTRAINT [FK_Sale_Invoice_Headers] FOREIGN KEY([Invoice_ID])
-REFERENCES [dbo].[Invoice_headers] ([Invoice_ID])
+REFERENCES [dbo].[InvoiceHeaders] ([Invoice_ID])
 ON DELETE CASCADE
 GO
 
@@ -147,42 +158,42 @@ REFERENCES [dbo].[Customers] ([Customer_name])
 ON DELETE CASCADE
 GO
 
-ALTER TABLE [dbo].[Invoice_headers]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_Customer] FOREIGN KEY([Customer_ID])
+ALTER TABLE [dbo].[InvoiceHeaders]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_Customer] FOREIGN KEY([Customer_ID])
 REFERENCES [dbo].[Customers] ([Customer_ID])
 ON DELETE NO ACTION
 GO
 
-ALTER TABLE [dbo].[Invoice_items]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_ID] FOREIGN KEY([Invoice_ID])
-REFERENCES [dbo].[Invoice_headers] ([Invoice_ID])
+ALTER TABLE [dbo].[InvoiceItems]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_ID] FOREIGN KEY([Invoice_ID])
+REFERENCES [dbo].[InvoiceHeaders] ([Invoice_ID])
 ON DELETE CASCADE
 GO
 
-ALTER TABLE [dbo].[Invoice_items]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_items_ID] FOREIGN KEY([Product_name])
+ALTER TABLE [dbo].[InvoiceItems]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_items_ID] FOREIGN KEY([Product_name])
 REFERENCES [dbo].[Products] ([Product_name])
 GO
 
-ALTER TABLE [dbo].[Invoice_items]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_items_Product_name] FOREIGN KEY([Product_name])
+ALTER TABLE [dbo].[InvoiceItems]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_items_Product_name] FOREIGN KEY([Product_name])
 REFERENCES [dbo].[Products] ([Product_name])
 ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_P_type] FOREIGN KEY([P_type])
-REFERENCES [dbo].[Products_Types] ([P_Type_Name])
+REFERENCES [dbo].[ProductsTypes] ([P_Type_Name])
 ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_Distributor] FOREIGN KEY([Distributor])
-REFERENCES [dbo].[Distributors] ([Dis_name])
+REFERENCES [dbo].[Companies] ([CompanyName])
 ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_Brewery] FOREIGN KEY([Brewery])
-REFERENCES [dbo].[Breweries] ([Br_name])
-ON DELETE CASCADE
+REFERENCES [dbo].[Companies] ([CompanyName])
+ON DELETE NO ACTION
 GO
 
 ALTER TABLE [dbo].[Customers]  WITH NOCHECK ADD  CONSTRAINT [FK_Customers] FOREIGN KEY([Cus_Type])
-REFERENCES [dbo].[Cus_Types] ([Cus_Type])
+REFERENCES [dbo].[CusTypes] ([Cus_Type])
 ON DELETE CASCADE
 GO
 
@@ -199,9 +210,9 @@ GO
 CREATE TRIGGER TR_GET_DATETIME_INVOICE_H ON Sale
 AFTER INSERT
 AS
-UPDATE Invoice_headers
+UPDATE InvoiceHeaders
 SET Date_time = GETDATE()
-WHERE Invoice_ID = (SELECT MAX(Invoice_ID) FROM Invoice_headers);
+WHERE Invoice_ID = (SELECT MAX(Invoice_ID) FROM InvoiceHeaders);
 GO
 
 
@@ -393,94 +404,94 @@ VALUES ('warehouseman', 'warehouseman2', 'David', 'Scott')
 INSERT INTO Employees (Position, Em_LOGIN, Em_Name, Surname)
 VALUES ('boss', 'boss', 'Peter', 'Anderson')
 
-INSERT INTO Products_Types (P_Type_Name)
+INSERT INTO ProductsTypes (P_Type_Name)
 VALUES ('Lager')
 
-INSERT INTO Products_Types (P_Type_Name)
+INSERT INTO ProductsTypes (P_Type_Name)
 VALUES ('Porter')
 
-INSERT INTO Products_Types (P_Type_Name)
+INSERT INTO ProductsTypes (P_Type_Name)
 VALUES ('Wheat beer')
 
-INSERT INTO Products_Types (P_Type_Name)
+INSERT INTO ProductsTypes (P_Type_Name)
 VALUES ('Stout')
 
-INSERT INTO Products_Types (P_Type_Name)
+INSERT INTO ProductsTypes (P_Type_Name)
 VALUES ('RIS')
 
-INSERT INTO Distributors (Dis_name, Dis_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('We love beer', 'Sosnowiec', 'ul. Zielona 2', '15-232', '123456789', 'we_love_beer@beer.pl', 'www.welovebeer.pl')
 
-INSERT INTO Distributors (Dis_name, Dis_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('Beer masters', 'Wroc³aw', 'ul. Czerwona 99', '50-531', '321654987', 'beer_masters@beer.pl', 'www.beermasters.pl')
 
-INSERT INTO Distributors (Dis_name, Dis_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('Darkest beers', 'Kraków', 'ul. Niebieska 745', '15-232', '741852963', 'darkest_beers@beer.pl', 'www.darkestbeers.pl')
 
-INSERT INTO Breweries (Br_name, Br_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('Hops', 'Wroc³aw', 'ul. Ciemna 12', '50-634', '123654897', 'hops@beer.pl', 'www.hops.pl')
 
-INSERT INTO Breweries (Br_name, Br_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('For The Sun', 'Kostom³oty', 'ul. Sucha 2', '80-532', '365854795', 'For_The_Sun@beer.pl', 'www.forthesun.pl')
 
-INSERT INTO Breweries (Br_name, Br_Location, Adress, Postal_code, Telephone, Email, WWW)
+INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
 VALUES ('Green_Hops', 'Ko³o', 'ul. Mokra 64', '70-564', '123654897', 'green_hops@beer.pl', 'www.greenhops.pl')
 
-INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l', 8905415667485)
+INSERT INTO Products (ProductID, Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('eec777a8-4c4c-45b7-8312-789a0c8bb536', 'Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l', 8905415667485)
 
-INSERT INTO Products (Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l', 8596451245557)
+INSERT INTO Products (ProductID, Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('35ee1fab-7bea-463a-9b70-2c8e5602cba1', 'Wroc³awskie', 'For The Sun', 12, 'Porter', 4340, '0.5l', 8596451245557)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Hip-Hops', 'Hops', 'We love beer', 10, 'Wheat beer', 7890, '0.5l', 8594006931755)
+INSERT INTO Products (ProductID, Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('e66fea51-53ad-446d-bbe1-ead3d016c586', 'Hip-Hops', 'Hops', 'We love beer', 10, 'Wheat beer', 7890, '0.5l', 8594006931755)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Dark Hoops', 'Hops', 'We love beer', 9, 'Porter', 5000, '0.5l', 8905697841256)
+INSERT INTO Products (ProductID, Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('f529747e-ad44-42d6-bb32-c47cd34da42b', 'Dark Hoops', 'Hops', 'We love beer', 9, 'Porter', 5000, '0.5l', 8905697841256)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Black Leaf', 'Green_Hops', 'Beer masters', 22, 'RIS', 3900, '0.3l', 8707689458741)
+INSERT INTO Products (ProductID, Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('f10f24c7-29ce-46c0-890e-62c78b7e1e7d', 'Black Leaf', 'Green_Hops', 'Beer masters', 22, 'RIS', 3900, '0.3l', 8707689458741)
 
-INSERT INTO Products (Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
-VALUES ('Coin', 'Green_Hops', 'Beer masters', 11, 'Stout', 6920, '0.5l', 8905694581245)
+INSERT INTO Products (ProductID, Product_name, Brewery, Distributor, Price, P_type, Amount, Unit_of_measurement, Bar_code)
+VALUES ('e742bf9d-a6ff-45c4-8fc3-5b5c32460b62', 'Coin', 'Green_Hops', 'Beer masters', 11, 'Stout', 6920, '0.5l', 8905694581245)
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
-VALUES ( 'Kazimierskie', '2016/08/12/T23', '2017-05-02 11:11:11')
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
+VALUES ('Kazimierskie', '2016/08/12/T23', '2017-05-02 11:11:11')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Wroc³awskie', '2016/11/21/T43', '2017-10-12 20:11:11')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Hip-Hops', '2016/12/01/R213', '2017-02-12 19:20:00')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Hip-Hops', '2016/12/02/R214', '2017-02-12 20:20:00')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Hip-Hops', '2016/12/03/R215', '2017-02-12 12:50:01')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Dark Hoops', '2016/10/11/S32', '2017-04-05 07:31:12')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Dark Hoops', '2016/10/12/S33', '2017-04-06 08:10:45')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Black Leaf', '2016/12/12/W31', '2017-06-12 11:11:01')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Coin', '2016/12/12/8213', '2017-07-14 09:43:21')
 
-INSERT INTO Expiration_dates (Product_name, Serial_number, Expiration_date)
+INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Coin', '2016/12/13/8214', '2017-07-15 19:13:21')
 
-INSERT INTO Cus_Types (Cus_Type, Discount)
+INSERT INTO CusTypes (Cus_Type, Discount)
 VALUES ('DETAL', 0)
 
-INSERT INTO Cus_Types (Cus_Type, Discount)
+INSERT INTO CusTypes (Cus_Type, Discount)
 VALUES ('HURT', 5)
 
-INSERT INTO Cus_Types (Cus_Type, Discount)
+INSERT INTO CusTypes (Cus_Type, Discount)
 VALUES ('VIP', 10)
 
 INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
@@ -495,22 +506,22 @@ VALUES ('Ma³pka', '8889652121', 'Wroc³aw', 'ul. Hutnicza 2', '50-001', '85412565
 INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
 VALUES ('Kropka', '6527896598', 'Wroc³aw', 'ul. Wiejska 74', '50-031', '745985125', 'kropka@beer.com', 'www.kropka.com', 'VIP')
 
-INSERT INTO Invoice_headers (Customer_ID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
 VALUES (1, 1100, 'CASH', 10, '2017-02-23 11:11:21')
 
-INSERT INTO Invoice_headers (Customer_ID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
 VALUES (2, 1800, 'CREDIT CARD', 5, '2017-01-01 16:00:22')
 
-INSERT INTO Invoice_headers (Customer_ID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
 VALUES (3, 10000, 'TRANSFER', 5, '2017-01-13 07:57:04')
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
 VALUES ('Coin', 1, 100, 11, '0.5l', '2016/12/23/P09', 8905694581245)
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
 VALUES ('Dark Hoops', 2, 200, 9, '0.3l', '2016/12/30/R423', 8905697841256)
 
-INSERT INTO Invoice_items (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
+INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
 VALUES ('Hip-Hops', 3, 1000, 10, '0.5l', '2017/01/23/G543', 8594006931755)
 
 INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
@@ -522,3 +533,23 @@ VALUES (2, 'Semafor', 2, '2017-01-01 16:00:22')
 INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
 VALUES (3, 'Ma³pka', 3, '2017-01-13 07:57:04')
 
+INSERT INTO CompaniesTypes (TypeName)
+VALUES ('Brewery')
+
+INSERT INTO CompaniesTypes (TypeName)
+VALUES ('Distributor')
+
+INSERT INTO CompanyType (CompanyID, TypeID)
+VALUES (1, 1)
+
+INSERT INTO CompanyType (CompanyID, TypeID)
+VALUES (1, 2)
+
+INSERT INTO CompanyType (CompanyID, TypeID)
+VALUES (2, 1)
+
+INSERT INTO CompanyType (CompanyID, TypeID)
+VALUES (3, 1)
+
+INSERT INTO CompanyType (CompanyID, TypeID)
+VALUES (4, 2)
