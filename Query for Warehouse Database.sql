@@ -12,7 +12,7 @@ GO
 CREATE TABLE [dbo].[Sale] (
 Sale_ID int identity(1,1) NOT NULL,
 Employee_ID int NOT NULL,
-Customer_name varchar(255) NOT NULL,
+PartnerName varchar(255) NOT NULL,
 Invoice_ID int NOT NULL,
 Sale_date datetime,
 Operation_status int CHECK (Operation_status = 0 OR Operation_status = 1) DEFAULT (0),
@@ -22,7 +22,7 @@ GO
 
 CREATE TABLE [dbo].[InvoiceHeaders] (
 Invoice_ID int identity(1,1) NOT NULL,
-Customer_ID int NOT NULL,
+PartnerID varchar(255) NOT NULL,
 Payment varchar(30) NOT NULL,
 Discount int,
 Date_time datetime,
@@ -51,25 +51,6 @@ Surname varchar(255) NOT NULL
 CONSTRAINT PK_Employee PRIMARY KEY CLUSTERED (Employee_ID))
 GO
 
-CREATE TABLE [dbo].[Customers] (
-Customer_ID int identity(1,1) NOT NULL,
-Customer_name varchar(255) UNIQUE,
-NIP varchar(20) UNIQUE,
-City varchar(255),
-C_Address varchar(255),
-Postal_code varchar(50),
-Telephone varchar(50),
-Email varchar(255),
-WWW varchar(255),
-Cus_Type varchar(50),
-CONSTRAINT PK_Customers PRIMARY KEY CLUSTERED (Customer_ID))
-GO
-
-CREATE TABLE [dbo].[CusTypes] (
-Cus_Type varchar(50) NOT NULL, 
-Discount int CHECK (Discount >= 0) DEFAULT (0)
-CONSTRAINT PK_Cus_Type PRIMARY KEY CLUSTERED (Cus_Type))
-GO
 
 CREATE TABLE [dbo].[Products] (
 ProductID varchar(255) NOT NULL UNIQUE,
@@ -85,54 +66,62 @@ CONSTRAINT PK_Product PRIMARY KEY CLUSTERED (ProductID))
 GO
 
 CREATE TABLE [dbo].[ProductsTypes] (
-ID int identity (1,1) NOT NULL,
-P_Type_Name varchar(50) NOT NULL UNIQUE,
-CONSTRAINT PK_Product_Type PRIMARY KEY CLUSTERED (ID))
+ProductTypeID varchar(255) NOT NULL,
+ProductTypeName varchar(50) NOT NULL UNIQUE,
+CONSTRAINT PK_Product_Type PRIMARY KEY CLUSTERED (ProductTypeID))
 GO
 
 CREATE TABLE [dbo].[ExpirationDates](
-ID int identity (1,1) NOT NULL,
+ExpirationDateID int identity (1,1) NOT NULL,
 Product_name varchar(255) NOT NULL,
 Serial_number varchar(255) NOT NULL,
 Expiration_date datetime NOT NULL,
-CONSTRAINT PK_Expiration_dates PRIMARY KEY CLUSTERED (ID)
+CONSTRAINT PK_Expiration_dates PRIMARY KEY CLUSTERED (ExpirationDateID)
 )
 GO
 
-CREATE TABLE [dbo].[CompaniesTypes](
+CREATE TABLE [dbo].[PartnerTypes](
 TypeID int identity(1,1) NOT NULL,
 TypeName varchar(255) NOT NULL,
 CONSTRAINT PK_TypeID PRIMARY KEY CLUSTERED (TypeID))
 GO
 
-CREATE TABLE [dbo].[Companies](
-CompanyID int identity(1,1) NOT NULL,
-CompanyName varchar(255) NOT NULL UNIQUE,
-City varchar(255) NOT NULL,
-Adress varchar (255) NOT NULL,
-Postal_code varchar(50) NOT NULL,
-Telephone varchar (50) NOT NULL,
-Email varchar(255) NOT NULL,
-WWW varchar(255) NOT NULL
-CONSTRAINT PK_dDistributor PRIMARY KEY CLUSTERED (CompanyID))
+CREATE TABLE [dbo].[CustomerTypes] (
+CustomerType varchar(50) NOT NULL, 
+Discount int CHECK (Discount >= 0) DEFAULT (0)
+CONSTRAINT PK_CustomerType PRIMARY KEY CLUSTERED (CustomerType))
 GO
 
-CREATE TABLE [dbo].[CompanyType](
-CompanyTypeID int identity(1, 1) NOT NULL,
-CompanyID int NOT NULL,
+CREATE TABLE [dbo].[TradingPartners](
+PartnerID varchar(255) NOT NULL,
+PartnerName varchar(255) NOT NULL UNIQUE,
+NIP varchar(20),
+City varchar(255) NOT NULL,
+Address varchar (255) NOT NULL,
+PostalCode varchar(50) NOT NULL,
+Telephone varchar (50) NOT NULL,
+Email varchar(255) NOT NULL,
+WWW varchar(255),
+CustomerType varchar(50),
+CONSTRAINT PK_dDistributor PRIMARY KEY CLUSTERED (PartnerID))
+GO
+
+CREATE TABLE [dbo].[TradingPartnerType](
+TradingPartnerTypeID int identity(1, 1) NOT NULL,
+PartnerID varchar(255) NOT NULL,
 TypeID int NOT NULL,
-CONSTRAINT PK_CompanyTypeID PRIMARY KEY CLUSTERED (CompanyTypeID)
+CONSTRAINT PK_TradingPartnerTypeID PRIMARY KEY CLUSTERED (TradingPartnerTypeID)
 )
 
 
 /* This part is adding foreign keys */
 
-ALTER TABLE [dbo].[CompanyType] WITH NOCHECK ADD CONSTRAINT [FK_Comapanies] FOREIGN KEY ([CompanyID])
-REFERENCES [dbo].[Companies]([CompanyID])
+ALTER TABLE [dbo].[TradingPartnerType] WITH NOCHECK ADD CONSTRAINT [FK_TradingPartnersType] FOREIGN KEY ([PartnerID])
+REFERENCES [dbo].[TradingPartners]([PartnerID])
 GO
 
-ALTER TABLE [dbo].[CompanyType] WITH NOCHECK ADD CONSTRAINT [FK_Types] FOREIGN KEY ([TypeID])
-REFERENCES [dbo].[CompaniesTypes]([TypeID])
+ALTER TABLE [dbo].[TradingPartnerType] WITH NOCHECK ADD CONSTRAINT [FK_Types] FOREIGN KEY ([TypeID])
+REFERENCES [dbo].[PartnerTypes]([TypeID])
 GO
 
 ALTER TABLE [dbo].[InvoiceItems] WITH NOCHECK ADD CONSTRAINT [FK_Product_bar_code] FOREIGN KEY ([Bar_code])
@@ -153,13 +142,13 @@ REFERENCES [dbo].[InvoiceHeaders] ([Invoice_ID])
 ON DELETE CASCADE
 GO
 
-ALTER TABLE [dbo].[Sale]  WITH NOCHECK ADD  CONSTRAINT [FK_Sale_Customers] FOREIGN KEY([Customer_name])
-REFERENCES [dbo].[Customers] ([Customer_name])
+ALTER TABLE [dbo].[Sale]  WITH NOCHECK ADD  CONSTRAINT [FK_Sale_TradingPartner] FOREIGN KEY([PartnerName])
+REFERENCES [dbo].[TradingPartners] ([PartnerName])
 ON DELETE CASCADE
 GO
 
-ALTER TABLE [dbo].[InvoiceHeaders]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_Customer] FOREIGN KEY([Customer_ID])
-REFERENCES [dbo].[Customers] ([Customer_ID])
+ALTER TABLE [dbo].[InvoiceHeaders]  WITH NOCHECK ADD  CONSTRAINT [FK_Invoice_Headers_Customer] FOREIGN KEY([PartnerID])
+REFERENCES [dbo].[TradingPartners] ([PartnerID])
 ON DELETE NO ACTION
 GO
 
@@ -178,22 +167,22 @@ ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_P_type] FOREIGN KEY([P_type])
-REFERENCES [dbo].[ProductsTypes] ([P_Type_Name])
+REFERENCES [dbo].[ProductsTypes] ([ProductTypeName])
 ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_Distributor] FOREIGN KEY([Distributor])
-REFERENCES [dbo].[Companies] ([CompanyName])
+REFERENCES [dbo].[TradingPartners] ([PartnerName])
 ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[Products]  WITH NOCHECK ADD  CONSTRAINT [FK_Products_Brewery] FOREIGN KEY([Brewery])
-REFERENCES [dbo].[Companies] ([CompanyName])
+REFERENCES [dbo].[TradingPartners] ([PartnerName])
 ON DELETE NO ACTION
 GO
 
-ALTER TABLE [dbo].[Customers]  WITH NOCHECK ADD  CONSTRAINT [FK_Customers] FOREIGN KEY([Cus_Type])
-REFERENCES [dbo].[CusTypes] ([Cus_Type])
+ALTER TABLE [dbo].[TradingPartners]  WITH NOCHECK ADD  CONSTRAINT [FK_TradingPartnerType] FOREIGN KEY([CustomerType])
+REFERENCES [dbo].[CustomerTypes] ([CustomerType])
 ON DELETE CASCADE
 GO
 
@@ -374,6 +363,45 @@ ALTER ROLE db_owner ADD MEMBER w_admin
 
 /*Example content for database*/
 
+INSERT INTO CustomerTypes (CustomerType, Discount)
+VALUES ('DETAL', 0)
+
+INSERT INTO CustomerTypes (CustomerType, Discount)
+VALUES ('HURT', 5)
+
+INSERT INTO CustomerTypes (CustomerType, Discount)
+VALUES ('VIP', 10)
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('cefb2832-58a7-4e51-848e-16b91e8f67d1', 'We love beer', 'Sosnowiec', 'ul. Zielona 2', '15-232', '123456789', 'we_love_beer@beer.pl', 'www.welovebeer.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('493d6b52-345e-47c0-9161-3703c965d43a', 'Beer masters', 'Wroc³aw', 'ul. Czerwona 99', '50-531', '321654987', 'beer_masters@beer.pl', 'www.beermasters.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('a8b94340-b14b-4541-8d5a-c93544c3048b', 'Darkest beers', 'Kraków', 'ul. Niebieska 745', '15-232', '741852963', 'darkest_beers@beer.pl', 'www.darkestbeers.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('c11006d7-9052-415b-9a30-decc5a897cbe', 'Hops', 'Wroc³aw', 'ul. Ciemna 12', '50-634', '123654897', 'hops@beer.pl', 'www.hops.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('2a540d48-6d4b-4dc3-a234-63ecce4e6767', 'For The Sun', 'Kostom³oty', 'ul. Sucha 2', '80-532', '365854795', 'For_The_Sun@beer.pl', 'www.forthesun.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, City, Address, PostalCode, Telephone, Email, WWW)
+VALUES ('737c3851-603e-46dc-a7e9-de4828d7808a', 'Green_Hops', 'Ko³o', 'ul. Mokra 64', '70-564', '123654897', 'green_hops@beer.pl', 'www.greenhops.pl')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, NIP, City, Address, PostalCode, Telephone, Email, WWW, CustomerType)
+VALUES ('a3206530-8bae-42ec-98e7-d0065436b244', 'GRAF', '8992683494', 'Wroc³aw', 'ul. Gajowa 22', '50-289', '745896523', 'graf@beer.com', 'www.graf.com', 'VIP')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, NIP, City, Address, PostalCode, Telephone, Email, WWW, CustomerType)
+VALUES ('29ec05f8-5f2d-4913-ad41-7cb59f1747ad', 'Semafor', '8997849878', 'Oleœnica', 'ul. Cebulowa 16', '40-239', '741852965', 'semafor@beer.com', 'www.semafor.com', 'HURT')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, NIP, City, Address, PostalCode, Telephone, Email, WWW, CustomerType)
+VALUES ('b7d8d658-f2d2-43be-a9b8-53dc1b855b93', 'Ma³pka', '8889652121', 'Wroc³aw', 'ul. Hutnicza 2', '50-001', '854125652', 'malpka@beer.com', 'www.malpka.com', 'HURT')
+
+INSERT INTO TradingPartners (PartnerID, PartnerName, NIP, City, Address, PostalCode, Telephone, Email, WWW, CustomerType)
+VALUES ('abf5f831-8db1-4f6a-9fe3-ed081682abcc', 'Kropka', '6527896598', 'Wroc³aw', 'ul. Wiejska 74', '50-031', '745985125', 'kropka@beer.com', 'www.kropka.com', 'VIP')
+
 INSERT INTO Employees (Position, Em_LOGIN, Em_Name, Surname)
 VALUES ('cashier', 'cashier1', 'John', 'Walker')
 
@@ -404,38 +432,20 @@ VALUES ('warehouseman', 'warehouseman2', 'David', 'Scott')
 INSERT INTO Employees (Position, Em_LOGIN, Em_Name, Surname)
 VALUES ('boss', 'boss', 'Peter', 'Anderson')
 
-INSERT INTO ProductsTypes (P_Type_Name)
-VALUES ('Lager')
+INSERT INTO ProductsTypes (ProductTypeID, ProductTypeName)
+VALUES ('d9ce5acd-ae5c-4a2c-b3a9-b7dafad1115a', 'Lager')
 
-INSERT INTO ProductsTypes (P_Type_Name)
-VALUES ('Porter')
+INSERT INTO ProductsTypes (ProductTypeID, ProductTypeName)
+VALUES ('809b4385-df4c-4f94-9889-ea26a995804c','Porter')
 
-INSERT INTO ProductsTypes (P_Type_Name)
-VALUES ('Wheat beer')
+INSERT INTO ProductsTypes (ProductTypeID, ProductTypeName)
+VALUES ('07c6a482-515f-4773-8295-ddd7dd557059','Wheat beer')
 
-INSERT INTO ProductsTypes (P_Type_Name)
-VALUES ('Stout')
+INSERT INTO ProductsTypes (ProductTypeID, ProductTypeName)
+VALUES ('5c6dd9fb-b081-4613-bee3-a54416975f21', 'Stout')
 
-INSERT INTO ProductsTypes (P_Type_Name)
-VALUES ('RIS')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('We love beer', 'Sosnowiec', 'ul. Zielona 2', '15-232', '123456789', 'we_love_beer@beer.pl', 'www.welovebeer.pl')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('Beer masters', 'Wroc³aw', 'ul. Czerwona 99', '50-531', '321654987', 'beer_masters@beer.pl', 'www.beermasters.pl')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('Darkest beers', 'Kraków', 'ul. Niebieska 745', '15-232', '741852963', 'darkest_beers@beer.pl', 'www.darkestbeers.pl')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('Hops', 'Wroc³aw', 'ul. Ciemna 12', '50-634', '123654897', 'hops@beer.pl', 'www.hops.pl')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('For The Sun', 'Kostom³oty', 'ul. Sucha 2', '80-532', '365854795', 'For_The_Sun@beer.pl', 'www.forthesun.pl')
-
-INSERT INTO Companies (CompanyName, City, Adress, Postal_code, Telephone, Email, WWW)
-VALUES ('Green_Hops', 'Ko³o', 'ul. Mokra 64', '70-564', '123654897', 'green_hops@beer.pl', 'www.greenhops.pl')
+INSERT INTO ProductsTypes (ProductTypeID, ProductTypeName)
+VALUES ('e4493fcf-137e-41cd-a315-47db0aaf2564', 'RIS')
 
 INSERT INTO Products (ProductID, Product_name, Brewery, Price, P_type, Amount, Unit_of_measurement, Bar_code)
 VALUES ('eec777a8-4c4c-45b7-8312-789a0c8bb536', 'Kazimierskie', 'For The Sun', 9, 'Lager', 100020, '0.5l', 8905415667485)
@@ -485,35 +495,14 @@ VALUES ( 'Coin', '2016/12/12/8213', '2017-07-14 09:43:21')
 INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Coin', '2016/12/13/8214', '2017-07-15 19:13:21')
 
-INSERT INTO CusTypes (Cus_Type, Discount)
-VALUES ('DETAL', 0)
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+VALUES ('a3206530-8bae-42ec-98e7-d0065436b244', 1100, 'CASH', 10, '2017-02-23 11:11:21')
 
-INSERT INTO CusTypes (Cus_Type, Discount)
-VALUES ('HURT', 5)
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+VALUES ('29ec05f8-5f2d-4913-ad41-7cb59f1747ad', 1800, 'CREDIT CARD', 5, '2017-01-01 16:00:22')
 
-INSERT INTO CusTypes (Cus_Type, Discount)
-VALUES ('VIP', 10)
-
-INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
-VALUES ('GRAF', '8992683494', 'Wroc³aw', 'ul. Gajowa 22', '50-289', '745896523', 'graf@beer.com', 'www.graf.com', 'VIP')
-
-INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
-VALUES ('Semafor', '8997849878', 'Oleœnica', 'ul. Cebulowa 16', '40-239', '741852965', 'semafor@beer.com', 'www.semafor.com', 'HURT')
-
-INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
-VALUES ('Ma³pka', '8889652121', 'Wroc³aw', 'ul. Hutnicza 2', '50-001', '854125652', 'malpka@beer.com', 'www.malpka.com', 'HURT')
-
-INSERT INTO Customers (Customer_name, NIP, City, C_Address, Postal_code, Telephone, Email, WWW, Cus_Type)
-VALUES ('Kropka', '6527896598', 'Wroc³aw', 'ul. Wiejska 74', '50-031', '745985125', 'kropka@beer.com', 'www.kropka.com', 'VIP')
-
-INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
-VALUES (1, 1100, 'CASH', 10, '2017-02-23 11:11:21')
-
-INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
-VALUES (2, 1800, 'CREDIT CARD', 5, '2017-01-01 16:00:22')
-
-INSERT INTO InvoiceHeaders (Customer_ID, Invoice_value, Payment, Discount, Date_time)
-VALUES (3, 10000, 'TRANSFER', 5, '2017-01-13 07:57:04')
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+VALUES ('b7d8d658-f2d2-43be-a9b8-53dc1b855b93', 10000, 'TRANSFER', 5, '2017-01-13 07:57:04')
 
 INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
 VALUES ('Coin', 1, 100, 11, '0.5l', '2016/12/23/P09', 8905694581245)
@@ -524,32 +513,50 @@ VALUES ('Dark Hoops', 2, 200, 9, '0.3l', '2016/12/30/R423', 8905697841256)
 INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
 VALUES ('Hip-Hops', 3, 1000, 10, '0.5l', '2017/01/23/G543', 8594006931755)
 
-INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
+INSERT INTO SALE (Employee_ID, PartnerName, Invoice_ID, Sale_date)
 VALUES (1, 'GRAF', 1, '2017-02-23 11:11:21')
 
-INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
+INSERT INTO SALE (Employee_ID, PartnerName, Invoice_ID, Sale_date)
 VALUES (2, 'Semafor', 2, '2017-01-01 16:00:22')
 
-INSERT INTO SALE (Employee_ID, Customer_name, Invoice_ID, Sale_date)
+INSERT INTO SALE (Employee_ID, PartnerName, Invoice_ID, Sale_date)
 VALUES (3, 'Ma³pka', 3, '2017-01-13 07:57:04')
 
-INSERT INTO CompaniesTypes (TypeName)
+INSERT INTO PartnerTypes (TypeName)
 VALUES ('Brewery')
 
-INSERT INTO CompaniesTypes (TypeName)
+INSERT INTO PartnerTypes (TypeName)
 VALUES ('Distributor')
 
-INSERT INTO CompanyType (CompanyID, TypeID)
-VALUES (1, 1)
+INSERT INTO PartnerTypes (TypeName)
+VALUES ('Customer')
 
-INSERT INTO CompanyType (CompanyID, TypeID)
-VALUES (1, 2)
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('cefb2832-58a7-4e51-848e-16b91e8f67d1', 2)
 
-INSERT INTO CompanyType (CompanyID, TypeID)
-VALUES (2, 1)
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('493d6b52-345e-47c0-9161-3703c965d43a', 2)
 
-INSERT INTO CompanyType (CompanyID, TypeID)
-VALUES (3, 1)
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('a8b94340-b14b-4541-8d5a-c93544c3048b', 1)
 
-INSERT INTO CompanyType (CompanyID, TypeID)
-VALUES (4, 2)
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('c11006d7-9052-415b-9a30-decc5a897cbe', 1)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('2a540d48-6d4b-4dc3-a234-63ecce4e6767', 1)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('737c3851-603e-46dc-a7e9-de4828d7808a', 1)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('a3206530-8bae-42ec-98e7-d0065436b244', 3)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('29ec05f8-5f2d-4913-ad41-7cb59f1747ad', 3)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('b7d8d658-f2d2-43be-a9b8-53dc1b855b93', 3)
+
+INSERT INTO TradingPartnerType (PartnerID, TypeID)
+VALUES ('abf5f831-8db1-4f6a-9fe3-ed081682abcc', 3)
