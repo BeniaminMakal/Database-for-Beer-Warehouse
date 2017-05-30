@@ -25,13 +25,13 @@ Invoice_ID int identity(1,1) NOT NULL,
 PartnerID varchar(255) NOT NULL,
 Payment varchar(30) NOT NULL,
 Discount int,
-Date_time datetime,
-Invoice_value float NOT NULL
+TransactionTime datetime,
+Invoice_value decimal NOT NULL
 CONSTRAINT PK_Invoice_header PRIMARY KEY CLUSTERED (Invoice_ID))
 GO
 
 CREATE TABLE [dbo].[InvoiceItems] (
-ID int NOT NULL identity(1,1),
+InvoiceItemID int NOT NULL identity(1,1),
 Invoice_ID int NOT NULL,
 Product_name varchar(255) NOT NULL,
 Unit_price int NOT NULL CHECK (Unit_price>0),
@@ -39,7 +39,7 @@ Amount float NOT NULL,
 Unit_of_measurement varchar(50) NOT NULL,
 Serial_number varchar(255) NOT NULL, 
 Bar_code bigint NOT NULL,
-CONSTRAINT PK_Invoice_items PRIMARY KEY CLUSTERED (ID))
+CONSTRAINT PK_Invoice_items PRIMARY KEY CLUSTERED (InvoiceItemID))
 GO
 
 CREATE TABLE [dbo].[Employees] (
@@ -200,7 +200,7 @@ CREATE TRIGGER TR_GET_DATETIME_INVOICE_H ON Sale
 AFTER INSERT
 AS
 UPDATE InvoiceHeaders
-SET Date_time = GETDATE()
+SET TransactionTime = GETDATE()
 WHERE Invoice_ID = (SELECT MAX(Invoice_ID) FROM InvoiceHeaders);
 GO
 
@@ -495,13 +495,13 @@ VALUES ( 'Coin', '2016/12/12/8213', '2017-07-14 09:43:21')
 INSERT INTO ExpirationDates (Product_name, Serial_number, Expiration_date)
 VALUES ( 'Coin', '2016/12/13/8214', '2017-07-15 19:13:21')
 
-INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, TransactionTime)
 VALUES ('a3206530-8bae-42ec-98e7-d0065436b244', 1100, 'CASH', 10, '2017-02-23 11:11:21')
 
-INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, TransactionTime)
 VALUES ('29ec05f8-5f2d-4913-ad41-7cb59f1747ad', 1800, 'CREDIT CARD', 5, '2017-01-01 16:00:22')
 
-INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, Date_time)
+INSERT INTO InvoiceHeaders (PartnerID, Invoice_value, Payment, Discount, TransactionTime)
 VALUES ('b7d8d658-f2d2-43be-a9b8-53dc1b855b93', 10000, 'TRANSFER', 5, '2017-01-13 07:57:04')
 
 INSERT INTO InvoiceItems (Product_name, Invoice_ID, Amount, Unit_price, Unit_of_measurement, Serial_number, Bar_code)
